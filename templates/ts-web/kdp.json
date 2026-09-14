@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "name": "文本整理",
+  "description": "删除空行并整理文本空白字符",
+  "template": "ts-web",
+  "capabilities": { "database": false, "files": false },
+  "config": [],
+  "secrets": []
+}

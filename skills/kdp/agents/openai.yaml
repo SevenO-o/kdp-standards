@@ -1,6 +1,0 @@
-interface:
-  display_name: "KDP 个人工具"
-  short_description: "按照公司规范创建个人效率工具，完成本地验证，并通过发布助手部署到统一平台"
-  default_prompt: "使用 $kdp 创建一个符合公司规范的个人工具。"
-policy:
-  allow_implicit_invocation: true
