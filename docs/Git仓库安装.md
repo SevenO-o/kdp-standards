@@ -2,7 +2,7 @@
 
 公开规范仓库：https://github.com/SevenO-o/kdp-standards 。无需 GitHub 账号、登录或成员邀请即可读取与克隆。获取规范不需要 KDP 发布身份；发布、更新和回滚工具仍由公司平台验证所有者。
 
-把下面的话交给 Agent：
+首次安装时把下面的话交给 Agent：
 
 > 从 https://github.com/SevenO-o/kdp-standards 克隆或更新仓库，阅读 docs/Git仓库安装.md，按说明安装或更新 KDP 助手，把规范来源切换到该 Git 仓库。保留已有发布身份、工具绑定和版本锁，验证规范确实从 Git 拉取。
 
@@ -40,6 +40,8 @@ node "$HOME/.codex/skills/kdp/scripts/kdp.mjs" source
 应返回 `state: ready`、`cached: false`、Git 提交号及推荐组合。`cached: true` 只证明缓存可用，不代表本次连接 GitHub 成功。安装不创建工具、不登记发布身份。
 
 ## 以后如何开发
+
+安装后直接描述工具需求。Skill 已内置公开仓库入口，会自动运行助手 `source` 获取规范索引；助手或启动配置缺失时，按 Skill 内的流程自动准备。当前处于开发阶段，不提供历史来源迁移或兼容分支。
 
 - 新建工具：助手 `init` 自动拉取 `main` 的索引，固定这次 Git 提交，校验三类产物摘要，生成版本锁和 `docs/standards/`。
 - 修改已有工具：保留 `kdp.lock.json`。`source` 查询仓库，`check` 获取同一锁定版本的检查器；恢复规范或升级时使用同一来源及现有迁移流程。
