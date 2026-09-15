@@ -1,6 +1,6 @@
 {
   "name": "kdp-ts-web-tool",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "private": true,
   "type": "module",
   "engines": {
@@ -15,7 +15,9 @@
     "test": "tsx --test tests/*.test.ts",
     "build": "npm run contracts && npm run typecheck && vite build && tsc -p tsconfig.server.json",
     "check": "npm run contracts && npm run typecheck",
-    "start": "node dist/server/index.js"
+    "start": "node dist/server/index.js",
+    "preview:platform": "tsx scripts/preview-platform.ts",
+    "verify:platform": "tsx scripts/verify-platform.ts"
   },
   "dependencies": {
     "@fastify/static": "10.1.3",
