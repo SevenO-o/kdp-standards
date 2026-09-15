@@ -1,4 +1,4 @@
-import { toolHttp } from '../../shared/tool-http.js';
+import { toolHttp } from '../../shared/tool-http-policy.js';
 
 /** Common client handling for JSON and single-file responses through the KDP gateway. */
 export class ApiError extends Error {
@@ -10,7 +10,7 @@ async function rejectResponse(response: Response): Promise<never> {
 }
 export async function readJson<T>(response: Response): Promise<T> {
   if(!response.ok) return rejectResponse(response);
-  if(!/^application\/json(?:;|$)/i.test(response.headers.get('content-type')??'')) throw new ApiError('服务返回了无法读取的结果',502,'INVALID_RESPONSE');
+  if(!/^application\/json(?:;|$)/i.test(response.headers.get('content-type')??'')) { await response.body?.cancel(); throw new ApiError('服务返回了无法读取的结果',502,'INVALID_RESPONSE'); }
   const body=await response.json().catch(()=>null);
   if(!body||typeof body!=='object'||!('data' in body)) throw new ApiError('服务返回了无法读取的结果',502,'INVALID_RESPONSE');
   return body.data as T;
@@ -28,8 +28,9 @@ function filename(disposition: string|null): string {
 export async function readDownload(response: Response, options: {expectedTypes:readonly string[];sourceBytes?:number}) {
   if(!response.ok)return rejectResponse(response);
   const type=(response.headers.get('content-type')??'').split(';')[0].trim().toLowerCase();
-  if(!options.expectedTypes.map(t=>t.toLowerCase()).includes(type))throw new ApiError('返回的文件类型不符合预期',502,'INVALID_FILE_RESPONSE');
-  const blob=await response.blob();
+  if(!options.expectedTypes.map(t=>t.toLowerCase()).includes(type)){await response.body?.cancel();throw new ApiError('返回的文件类型不符合预期',502,'INVALID_FILE_RESPONSE');}
+  let blob: Blob;
+  try { blob=await response.blob(); } catch { throw new ApiError('文件传输中断，请重试',502,'FILE_TRANSFER_INTERRUPTED'); }
   const sourceBytes=options.sourceBytes!==undefined?(Number.isSafeInteger(options.sourceBytes)&&options.sourceBytes>=0?options.sourceBytes:null):byteMetric(response.headers.get('x-source-bytes'));
   // Actual downloaded file bytes are authoritative; never turn a missing header into 0 B.
   const outputBytes=blob.size;
@@ -42,4 +43,4 @@ export async function toolRequest(path: string, init: RequestInit={}, timeoutMs:
   return fetch(new URL(`./api/v1/${path}`,window.location.href),{...init,credentials:'same-origin',signal});
 }
 export async function requestJson<T>(path:string,init?:RequestInit):Promise<T>{return readJson<T>(await toolRequest(path,init));}
-export async function requestDownload(path:string,init:RequestInit,options:{expectedTypes:readonly string[];sourceBytes?:number}){return readDownload(await toolRequest(path,init,toolHttp.binaryTimeoutMs),options);}
+export async function requestDownload(path:string,init:RequestInit,options:{expectedTypes:readonly string[];sourceBytes?:number;timeoutMs?:number}){return readDownload(await toolRequest(path,init,options.timeoutMs ?? toolHttp.fileTimeoutMs),options);}

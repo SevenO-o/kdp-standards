@@ -9,7 +9,7 @@ const close=(server:Server)=>new Promise<void>(resolve=>server.close(()=>resolve
 test('local gateway preserves binary metrics, drops cookies and rejects oversized results',async()=>{
   const upstream=createServer((req,res)=>{
     assert.equal(req.headers.cookie,undefined);assert.equal(req.headers.authorization,undefined);assert.equal(req.headers['x-kdp-context'],undefined);
-    if(req.url==='/api/oversized'){res.writeHead(200,{'content-type':'application/octet-stream'});res.end(Buffer.alloc(toolHttp.maxBytes+1));return;}
+    if(req.url==='/api/oversized'){res.writeHead(200,{'content-type':'application/json'});res.end(Buffer.alloc(toolHttp.jsonMaxBytes+1));return;}
     res.writeHead(200,{'content-type':'image/png','content-disposition':'attachment; filename="out.png"','x-source-bytes':'246','x-output-bytes':'123','x-tool-width':'64','set-cookie':'private=value','x-kdp-context':'private','x-unknown':'hidden'});res.end(Buffer.alloc(123));
   });
   const origin=await listen(upstream);const handler=localGateway({origin});const gateway=createServer((req,res)=>{void handler(req,res);});

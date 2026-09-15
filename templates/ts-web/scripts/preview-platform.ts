@@ -3,6 +3,7 @@ import { createHmac, randomBytes, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { toolHttpPolicy } from '../shared/tool-http-policy.js';
 import { localGateway } from './local-gateway.js';
 
 export async function startPlatformPreview(port=5174) {
@@ -21,6 +22,7 @@ export async function startPlatformPreview(port=5174) {
     if(req.url==='/'||req.url==='/tools/local-tool'){res.writeHead(302,{location:'/tools/local-tool/'});res.end();return;}
     void gateway(req,res,()=>{res.writeHead(404);res.end();});
   });
+  server.requestTimeout=Math.max(15000,toolHttpPolicy(process.env).fileTimeoutMs);
   try {await new Promise<void>((done,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',done);});}
   catch(error){await app.close();throw error;}
   return {url:`http://127.0.0.1:${(server.address() as {port:number}).port}/tools/local-tool/`,close:async()=>{await new Promise<void>(done=>server.close(()=>done()));await app.close();}};

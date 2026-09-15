@@ -19,3 +19,8 @@ test('HTTP and type failures never become successful downloads or JSON results',
   await assert.rejects(readDownload(new Response('{"data":{}}',{headers:{'content-type':'application/json'}}),{expectedTypes:['image/png']}),{code:'INVALID_FILE_RESPONSE'});
   await assert.rejects(readJson(new Response('<html>error</html>',{headers:{'content-type':'text/html'}})),{code:'INVALID_RESPONSE'});
 });
+
+test('interrupted downloads do not become successful partial blobs',async()=>{
+  const response=new Response(new ReadableStream({start(controller){controller.enqueue(new Uint8Array([1,2,3]));controller.error(new Error('connection lost'));}}),{headers:{'content-type':'image/png'}});
+  await assert.rejects(readDownload(response,{expectedTypes:['image/png']}),{code:'FILE_TRANSFER_INTERRUPTED'});
+});
